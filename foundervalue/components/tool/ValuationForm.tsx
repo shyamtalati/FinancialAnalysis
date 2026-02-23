@@ -1,8 +1,8 @@
 "use client";
 
-import { useForm, FormProvider, useFieldArray } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { StageSlug, ValuationResults } from "@/lib/types";
 import {
   aggregateResults,
@@ -180,13 +180,14 @@ export default function ValuationForm({ stage, onResults }: ValuationFormProps) 
   const defaults = getDefaults(stage);
 
   const methods = useForm({ defaultValues: defaults });
-  const { control } = methods;
 
-  // Register freeCashFlows field array with initial values
-  useFieldArray({ control, name: "freeCashFlows" as never });
-
-  // Reset defaults when stage changes
+  // Reset defaults only when stage changes (skip initial mount)
+  const isMounted = useRef(false);
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     methods.reset(getDefaults(stage));
   }, [stage, methods]);
 
